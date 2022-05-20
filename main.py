@@ -1,3 +1,5 @@
+import cv2
+import imutils as imutils
 import numpy as np
 from math import sqrt
 from numpy import uint8
@@ -9,6 +11,7 @@ from skimage.transform import probabilistic_hough_line
 from skimage import feature
 import time
 from skimage.draw import line
+from skimage.util import compare_images
 
 
 def integral_image(image, height, width):
@@ -66,27 +69,61 @@ def line_detection(img):
     return lines_img
 
 
-image = imread('test.jpg')
-height = image.shape[0]
-width = image.shape[1]
+# image = imread('test.jpg')
+# height = image.shape[0]
+# width = image.shape[1]
+#
+# # binarization
+# start = time.time()
+# binarized = binarization(image)
+# end = time.time()
+# imsave('binarized.jpg', img_as_ubyte(binarized))
+# print("Binarization took ", end - start, "ms")
+#
+# # edge detection with canny
+# start = time.time()
+# edges = edge_detection(binarized)
+# end = time.time()
+# imsave('edges.jpg', img_as_ubyte(edges))
+# print("Canny edge detection took ", end - start, "ms")
+#
+# ## line detectinon with hough
+# start = time.time()
+# lines = line_detection(edges)
+# end = time.time()
+# print('Probabilistic hough lines detection took ', end - start, 'ms')
+# imsave('lines.jpg', lines)
+left = imread('left.png')
+right = imread('right.png')
+# height = left.shape[0]
+# width = left.shape[1]
+# left_bin = binarization(left)
+# right_bin = binarization(right)
+#
+# left_edges = edge_detection(left_bin)
+# right_edges = edge_detection(right_bin)
+#
+# left_lines = line_detection(left_edges)
+# right_lines = line_detection(right_edges)
+#
+#
+# cmp1 = compare_images(left_edges, right_edges, method='diff')
+# cmp2 = compare_images(left_lines, right_lines, method='diff')
 
-# binarization
-start = time.time()
-binarized = binarization(image)
-end = time.time()
-imsave('binarized.jpg', img_as_ubyte(binarized))
-print("Binarization took ", end - start, "ms")
+diff = left.copy()
+cv2.absdiff(left, right, diff)
+gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
-# edge detection with canny
-start = time.time()
-edges = edge_detection(binarized)
-end = time.time()
-imsave('edges.jpg', img_as_ubyte(edges))
-print("Canny edge detection took ", end - start, "ms")
+for i in range(0, 3):
+    dilated = cv2.dilate(gray.copy(), None, iterations=i + 1)
+(T, thresh) = cv2.threshold(dilated, 3, 255, cv2.THRESH_BINARY)
+cnts = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+cnts = imutils.grab_contours(cnts)
+for c in cnts:
+     (x, y, w, h) = cv2.boundingRect(c)
+     mean_diff = np.mean(left[y:y+h, x:x+w]) - np.mean(right[y:y+h, x:x+w])
+     if abs(mean_diff) > 1:
+        cv2.rectangle(right, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-## line detectinon with hough
-start = time.time()
-lines = line_detection(edges)
-end = time.time()
-print('Probabilistic hough lines detection took ', end - start, 'ms')
-imsave('lines.jpg', lines)
+imsave("diff.jpg", right)
+
