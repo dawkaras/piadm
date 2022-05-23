@@ -69,6 +69,31 @@ def line_detection(img):
     return lines_img
 
 
+def image_quantization(img):
+    new_img = np.array(img, copy = True)
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            for k in range(3):
+                if img[i, j][k] < 32:
+                    gray = 0
+                elif img[i, j][k] < 64:
+                    gray = 32
+                elif img[i, j][k] < 96:
+                    gray = 64
+                elif img[i, j][k] < 128:
+                    gray = 96
+                elif img[i, j][k] < 160:
+                    gray = 128
+                elif img[i, j][k] < 192:
+                    gray = 160
+                elif img[i, j][k] < 224:
+                    gray = 192
+                else:
+                    gray = 224
+                new_img[i, j][k] = np.uint8(gray)
+    return new_img
+
+
 # image = imread('test.jpg')
 # height = image.shape[0]
 # width = image.shape[1]
@@ -93,10 +118,14 @@ def line_detection(img):
 # end = time.time()
 # print('Probabilistic hough lines detection took ', end - start, 'ms')
 # imsave('lines.jpg', lines)
-left = imread('left.png')
-right = imread('right.png')
-# height = left.shape[0]
-# width = left.shape[1]
+left = imread('left.jpg')
+right = imread('right2.jpg')
+height = left.shape[0]
+width = left.shape[1]
+
+# at least 5% of the image needs to be covered
+thresh = height * width * 0.05 * 0.05
+
 left_bin = binarization(left)
 right_bin = binarization(right)
 
@@ -121,10 +150,12 @@ cmp1 = compare_images(left_edges, right_edges, method='diff')
 cnts = cv2.findContours(img_as_ubyte(cmp1), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 cnts = imutils.grab_contours(cnts)
 for c in cnts:
-     (x, y, w, h) = cv2.boundingRect(c)
-     # mean_diff = np.mean(left[y:y+h, x:x+w]) - np.mean(right[y:y+h, x:x+w])
-     # if abs(mean_diff) > 1:
-     cv2.rectangle(right, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    (x, y, w, h) = cv2.boundingRect(c)
+    if w * h >= thresh:
+        left_q = image_quantization(left[y:y+h, x:x+w])
+        right_q = image_quantization(right[y:y+h, x:x+w])
+        mean_diff = np.mean(left_q) - np.mean(right_q)
+        if abs(mean_diff) > 10:
+            cv2.rectangle(right, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
 imsave("diff.jpg", right)
-
