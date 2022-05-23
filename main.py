@@ -97,33 +97,34 @@ left = imread('left.png')
 right = imread('right.png')
 # height = left.shape[0]
 # width = left.shape[1]
-# left_bin = binarization(left)
-# right_bin = binarization(right)
-#
-# left_edges = edge_detection(left_bin)
-# right_edges = edge_detection(right_bin)
+left_bin = binarization(left)
+right_bin = binarization(right)
+
+left_edges = edge_detection(left_bin)
+right_edges = edge_detection(right_bin)
 #
 # left_lines = line_detection(left_edges)
 # right_lines = line_detection(right_edges)
 #
 #
-# cmp1 = compare_images(left_edges, right_edges, method='diff')
+cmp1 = compare_images(left_edges, right_edges, method='diff')
 # cmp2 = compare_images(left_lines, right_lines, method='diff')
 
-diff = left.copy()
-cv2.absdiff(left, right, diff)
-gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+# diff = left.copy()
+# cv2.absdiff(left, right, diff)
+# gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
-for i in range(0, 3):
-    dilated = cv2.dilate(gray.copy(), None, iterations=i + 1)
-(T, thresh) = cv2.threshold(dilated, 3, 255, cv2.THRESH_BINARY)
-cnts = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+# for i in range(0, 3):
+#     dilated = cv2.dilate(gray.copy(), None, iterations=i + 1)
+# (T, thresh) = cv2.threshold(dilated, 3, 255, cv2.THRESH_BINARY)
+# print(thresh)
+cnts = cv2.findContours(img_as_ubyte(cmp1), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 cnts = imutils.grab_contours(cnts)
 for c in cnts:
      (x, y, w, h) = cv2.boundingRect(c)
-     mean_diff = np.mean(left[y:y+h, x:x+w]) - np.mean(right[y:y+h, x:x+w])
-     if abs(mean_diff) > 1:
-        cv2.rectangle(right, (x, y), (x + w, y + h), (0, 255, 0), 2)
+     # mean_diff = np.mean(left[y:y+h, x:x+w]) - np.mean(right[y:y+h, x:x+w])
+     # if abs(mean_diff) > 1:
+     cv2.rectangle(right, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
 imsave("diff.jpg", right)
 
