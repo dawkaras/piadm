@@ -13,6 +13,9 @@ import time
 from skimage.draw import line
 from skimage.util import compare_images
 
+from canny_detector import detect_edges
+from morphology import dilate, erode
+
 
 def integral_image(image, height, width):
     I = np.zeros((height, width))
@@ -54,23 +57,25 @@ def binarization(img):
 
 
 def edge_detection(grayscale_img):
-    return feature.canny(grayscale_img, sigma=0.5)
+    # res = feature.canny(grayscale_img, sigma=0.5)
+    res = detect_edges(grayscale_img, 0.5)
+    return res
 
 
 def line_detection(img):
     lines = probabilistic_hough_line(img, threshold=10, line_length=10, line_gap=5)
+    # lines = detect_lines(img)
     lines_img = np.zeros((img.shape[0], img.shape[1]), dtype=uint8)
-
     for hline in lines:
         p0, p1 = hline
         rr, cc = line(p0[1], p0[0], p1[1], p1[0])
-        # drawing red lines on original image
+        #     # drawing red lines on original image
         lines_img[rr, cc] = 255
     return lines_img
 
 
 def image_quantization(img):
-    new_img = np.array(img, copy = True)
+    new_img = np.array(img, copy=True)
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
             for k in range(3):
@@ -94,30 +99,6 @@ def image_quantization(img):
     return new_img
 
 
-# image = imread('test.jpg')
-# height = image.shape[0]
-# width = image.shape[1]
-#
-# # binarization
-# start = time.time()
-# binarized = binarization(image)
-# end = time.time()
-# imsave('binarized.jpg', img_as_ubyte(binarized))
-# print("Binarization took ", end - start, "ms")
-#
-# # edge detection with canny
-# start = time.time()
-# edges = edge_detection(binarized)
-# end = time.time()
-# imsave('edges.jpg', img_as_ubyte(edges))
-# print("Canny edge detection took ", end - start, "ms")
-#
-# ## line detectinon with hough
-# start = time.time()
-# lines = line_detection(edges)
-# end = time.time()
-# print('Probabilistic hough lines detection took ', end - start, 'ms')
-# imsave('lines.jpg', lines)
 left = imread('left.jpg')
 right = imread('right2.jpg')
 height = left.shape[0]
@@ -131,25 +112,26 @@ right_bin = binarization(right)
 
 left_edges = edge_detection(left_bin)
 right_edges = edge_detection(right_bin)
-#
-# left_lines = line_detection(left_edges)
-# right_lines = line_detection(right_edges)
-#
-#
-cmp1 = compare_images(left_edges, right_edges, method='diff')
-# cmp2 = compare_images(left_lines, right_lines, method='diff')
+imsave("left_edges.jpg", left_edges)
+imsave("right_edges.jpg", right_edges)
+left_dilate = dilate(left_edges)
+right_dilate = dilate(right_edges)
+imsave("left_dilate.jpg", left_dilate)
+imsave("right_dilate.jpg", right_dilate)
+left_erode = erode(left_dilate)
+right_erode = erode(right_dilate)
+imsave("left_erode.jpg", left_erode)
+imsave("right_erode.jpg", right_erode)
+left_lines = line_detection(left_erode)
+right_lines = line_detection(right_erode)
+imsave("left_lines.jpg", left_lines)
+imsave("right_lines.jpg", right_lines)
+# diff = compare_images(left_edges, right_edges, method='diff')
+diff = compare_images(left_lines, right_lines, method='diff')
 
-# diff = left.copy()
-# cv2.absdiff(left, right, diff)
-# gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
-
-# for i in range(0, 3):
-#     dilated = cv2.dilate(gray.copy(), None, iterations=i + 1)
-# (T, thresh) = cv2.threshold(dilated, 3, 255, cv2.THRESH_BINARY)
-# print(thresh)
-cnts = cv2.findContours(img_as_ubyte(cmp1), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-cnts = imutils.grab_contours(cnts)
-for c in cnts:
+rectangles = cv2.findContours(img_as_ubyte(diff), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+rectangles = imutils.grab_contours(rectangles)
+for c in rectangles:
     (x, y, w, h) = cv2.boundingRect(c)
     if w * h >= thresh:
         left_q = image_quantization(left[y:y+h, x:x+w])
@@ -157,5 +139,4 @@ for c in cnts:
         mean_diff = np.mean(left_q) - np.mean(right_q)
         if abs(mean_diff) > 10:
             cv2.rectangle(right, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
 imsave("diff.jpg", right)
