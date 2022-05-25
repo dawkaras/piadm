@@ -19,7 +19,7 @@ def pad(img, kernel):
     kr, kc = kernel.shape
     padded = np.zeros((r + kr, c + kc), dtype=img.dtype)
     insert = np.uint(kr / 2)
-    padded[insert: insert + r, insert: insert + c] = img
+    padded[int(insert): int(insert + r), int(insert): int(insert + c)] = img
     return padded
 
 

@@ -80,8 +80,8 @@ def generate_image_test2():
 left = generate_image_test1()
 right = generate_image_test2()
 
-imsave('right.png', right)
-imsave('left.png', left)
+imsave('resources/right.png', right)
+imsave('resources/left.png', left)
 
 left_bin = binarization(left)
 right_bin = binarization(right)
@@ -96,5 +96,5 @@ right_lines = line_detection(right_edges)
 cmp1 = compare_images(left_edges, right_edges, method='diff')
 cmp2 = compare_images(left_lines, right_lines, method='diff')
 
-imsave("compare_edges.jpg", cmp1)
-imsave("compare_lines.jpg", cmp2)
+imsave("out/compare_edges.jpg", cmp1)
+imsave("out/compare_lines.jpg", cmp2)

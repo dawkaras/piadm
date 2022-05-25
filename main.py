@@ -99,8 +99,8 @@ def image_quantization(img):
     return new_img
 
 
-left = imread('left.jpg')
-right = imread('right2.jpg')
+left = imread('resources/left.jpg')
+right = imread('resources/right2.jpg')
 height = left.shape[0]
 width = left.shape[1]
 
@@ -112,20 +112,20 @@ right_bin = binarization(right)
 
 left_edges = edge_detection(left_bin)
 right_edges = edge_detection(right_bin)
-imsave("left_edges.jpg", left_edges)
-imsave("right_edges.jpg", right_edges)
+imsave("out/left_edges.jpg", left_edges)
+imsave("out/right_edges.jpg", right_edges)
 left_dilate = dilate(left_edges)
 right_dilate = dilate(right_edges)
-imsave("left_dilate.jpg", left_dilate)
-imsave("right_dilate.jpg", right_dilate)
+imsave("out/left_dilate.jpg", left_dilate)
+imsave("out/right_dilate.jpg", right_dilate)
 left_erode = erode(left_dilate)
 right_erode = erode(right_dilate)
-imsave("left_erode.jpg", left_erode)
-imsave("right_erode.jpg", right_erode)
+imsave("out/left_erode.jpg", left_erode)
+imsave("out/right_erode.jpg", right_erode)
 left_lines = line_detection(left_erode)
 right_lines = line_detection(right_erode)
-imsave("left_lines.jpg", left_lines)
-imsave("right_lines.jpg", right_lines)
+imsave("out/left_lines.jpg", left_lines)
+imsave("out/right_lines.jpg", right_lines)
 # diff = compare_images(left_edges, right_edges, method='diff')
 diff = compare_images(left_lines, right_lines, method='diff')
 
@@ -139,4 +139,4 @@ for c in rectangles:
         mean_diff = np.mean(left_q) - np.mean(right_q)
         if abs(mean_diff) > 10:
             cv2.rectangle(right, (x, y), (x + w, y + h), (0, 255, 0), 2)
-imsave("diff.jpg", right)
+imsave("out/diff.jpg", right)
