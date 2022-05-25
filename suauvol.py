@@ -3,11 +3,6 @@ import math
 import numpy as np
 
 
-def rgb_to_gray(img):
-    coeffs = np.array([0.2125, 0.7154, 0.0721])
-    return img @ coeffs
-
-
 def integral_image(image, height, width):
     i = np.zeros((height, width))
     ii = np.zeros((height, width))

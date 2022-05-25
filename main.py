@@ -4,20 +4,12 @@ import numpy as np
 from numpy import uint8
 from skimage import img_as_ubyte
 from skimage.io import imread, imsave
-from skimage.color import rgb2gray
-from skimage.filters import threshold_sauvola
 from skimage.transform import probabilistic_hough_line
 from skimage.draw import line
-from skimage.util import compare_images
 import suauvol
+import util
 from canny_detector import detect_edges
 from morphology import dilate, erode
-
-
-def binarization(img):
-    grayscale = rgb2gray(img)
-    thresh_sauvola = threshold_sauvola(grayscale, window_size=25)
-    return grayscale > thresh_sauvola
 
 
 def edge_detection(grayscale_img):
@@ -37,32 +29,6 @@ def line_detection(img):
         lines_img[rr, cc] = 255
     return lines_img
 
-
-def image_quantization(img):
-    new_img = np.array(img, copy=True)
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            for k in range(3):
-                if img[i, j][k] < 32:
-                    gray = 0
-                elif img[i, j][k] < 64:
-                    gray = 32
-                elif img[i, j][k] < 96:
-                    gray = 64
-                elif img[i, j][k] < 128:
-                    gray = 96
-                elif img[i, j][k] < 160:
-                    gray = 128
-                elif img[i, j][k] < 192:
-                    gray = 160
-                elif img[i, j][k] < 224:
-                    gray = 192
-                else:
-                    gray = 224
-                new_img[i, j][k] = np.uint8(gray)
-    return new_img
-
-
 left = imread('resources/left.jpg')
 right = imread('resources/right2.jpg')
 height = left.shape[0]
@@ -72,8 +38,8 @@ width = left.shape[1]
 thresh = height * width * 0.05 * 0.05
 
 # convert image to grayscale
-left_gray = suauvol.rgb_to_gray(left)
-right_gray = suauvol.rgb_to_gray(right)
+left_gray = util.rgb_to_gray(left)
+right_gray = util.rgb_to_gray(right)
 
 # binarization
 left_bin = suauvol.binarization(left_gray, 0.2, 13, 128)
@@ -107,8 +73,8 @@ rectangles = imutils.grab_contours(rectangles)
 for c in rectangles:
     (x, y, w, h) = cv2.boundingRect(c)
     if w * h >= thresh:
-        left_q = image_quantization(left[y:y+h, x:x+w])
-        right_q = image_quantization(right[y:y+h, x:x+w])
+        left_q = util.image_quantization(left[y:y + h, x:x + w])
+        right_q = util.image_quantization(right[y:y+h, x:x+w])
         mean_diff = np.mean(left_q) - np.mean(right_q)
         if abs(mean_diff) > 10:
             cv2.rectangle(right, (x, y), (x + w, y + h), (0, 255, 0), 2)
