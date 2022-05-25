@@ -1,53 +1,17 @@
 import cv2
 import imutils as imutils
 import numpy as np
-from math import sqrt
 from numpy import uint8
 from skimage import img_as_ubyte
 from skimage.io import imread, imsave
 from skimage.color import rgb2gray
 from skimage.filters import threshold_sauvola
 from skimage.transform import probabilistic_hough_line
-from skimage import feature
-import time
 from skimage.draw import line
 from skimage.util import compare_images
-
+import suauvol
 from canny_detector import detect_edges
 from morphology import dilate, erode
-
-
-def integral_image(image, height, width):
-    I = np.zeros((height, width))
-    II = np.zeros((height, width))
-    for h in range(0, height):
-        sum = 0
-        sumSqr = 0
-        for w in range(0, width):
-            sum += image[h][w]
-            sumSqr += image[h][w] * image[h][w]
-            if h == 0:
-                I[h][w] = sum
-                II[h][w] = sumSqr
-            else:
-                I[h][w] = I[h - 1][w] + sum
-                II[h][w] = II[h - 1][w] + sumSqr
-    return I, II
-
-
-def sauvola(image, I, II, height, width, k, r, R):
-    bw = np.zeros((height, width))
-    s = (2 * r + 1) * (2 * r + 1)
-    for h in range(0, height):
-        for w in range(0, width):
-            if r + 1 <= h < height - r - 1 and r + 1 <= w < width - r - 1:
-                sum = I[h + r][w + r] + I[h - r - 1][w - r - 1] - I[h - r - 1][w + r] - \
-                      I[h + r][w - r - 1]
-                sumSqr = II[h + r][w + r] + II[h - r - 1][w - r - 1] - II[h - r - 1][w + r] - \
-                         II[h + r][w - r - 1]
-                avg = sum / s
-                bw[h][w] = 0 if image[h][w] < avg * (1 + k * (sqrt(sumSqr / s - avg * avg) / R - 1)) else 255
-    return bw
 
 
 def binarization(img):
@@ -107,13 +71,22 @@ width = left.shape[1]
 # at least 5% of the image needs to be covered
 thresh = height * width * 0.05 * 0.05
 
-left_bin = binarization(left)
-right_bin = binarization(right)
+# convert image to grayscale
+left_gray = suauvol.rgb_to_gray(left)
+right_gray = suauvol.rgb_to_gray(right)
 
+# binarization
+left_bin = suauvol.binarization(left_gray, 0.2, 13, 128)
+right_bin = suauvol.binarization(right_gray, 0.2, 13, 128)
+imsave("out/left_bin.jpg", left_bin)
+imsave("out/right_bin.jpg", right_bin)
+
+# edge detection
 left_edges = edge_detection(left_bin)
 right_edges = edge_detection(right_bin)
 imsave("out/left_edges.jpg", left_edges)
 imsave("out/right_edges.jpg", right_edges)
+
 left_dilate = dilate(left_edges)
 right_dilate = dilate(right_edges)
 imsave("out/left_dilate.jpg", left_dilate)
@@ -127,7 +100,7 @@ right_lines = line_detection(right_erode)
 imsave("out/left_lines.jpg", left_lines)
 imsave("out/right_lines.jpg", right_lines)
 # diff = compare_images(left_edges, right_edges, method='diff')
-diff = compare_images(left_lines, right_lines, method='diff')
+diff = np.abs(left_lines - right_lines)
 
 rectangles = cv2.findContours(img_as_ubyte(diff), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 rectangles = imutils.grab_contours(rectangles)
