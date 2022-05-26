@@ -50,8 +50,8 @@ right_gray = util.rgb_to_gray(right)
 end = time.time()
 print("RGB to grayscale right.jpg time: ", end - start, "s.")
 
-imsave("out/left_grayscale.jpg", left_gray)
-imsave("out/right_grayscale.jpg", right_gray)
+imsave("obrazy_i_dane/left_grayscale.jpg", left_gray)
+imsave("obrazy_i_dane/right_grayscale.jpg", right_gray)
 
 # binarization
 start = time.time()
@@ -64,8 +64,8 @@ right_bin = suauvol.binarization(right_gray, 0.2, 13, 128)
 end = time.time()
 print("Sauvol binarization time right2.jpg time: ", end - start, "s.")
 
-imsave("out/left_bin.jpg", left_bin)
-imsave("out/right_bin.jpg", right_bin)
+imsave("obrazy_i_dane/left_bin.jpg", left_bin)
+imsave("obrazy_i_dane/right_bin.jpg", right_bin)
 
 # edge detection
 start = time.time()
@@ -78,8 +78,8 @@ right_edges = edge_detection(right_bin)
 end = time.time()
 print("Edge detection right2.jpg time: ", end - start, "s.")
 
-imsave("out/left_edges.jpg", left_edges)
-imsave("out/right_edges.jpg", right_edges)
+imsave("obrazy_i_dane/left_edges.jpg", left_edges)
+imsave("obrazy_i_dane/right_edges.jpg", right_edges)
 
 start = time.time()
 left_dilate = dilate(left_edges)
@@ -91,8 +91,8 @@ right_dilate = dilate(right_edges)
 end = time.time()
 print("Dilate for right2.jpg time: ", end - start, "s.")
 
-imsave("out/left_dilate.jpg", left_dilate)
-imsave("out/right_dilate.jpg", right_dilate)
+imsave("obrazy_i_dane/left_dilate.jpg", left_dilate)
+imsave("obrazy_i_dane/right_dilate.jpg", right_dilate)
 
 start = time.time()
 left_erode = erode(left_dilate)
@@ -104,8 +104,8 @@ right_erode = erode(right_dilate)
 end = time.time()
 print("Erode right2.png time: ", end - start, "s.")
 
-imsave("out/left_erode.jpg", left_erode)
-imsave("out/right_erode.jpg", right_erode)
+imsave("obrazy_i_dane/left_erode.jpg", left_erode)
+imsave("obrazy_i_dane/right_erode.jpg", right_erode)
 
 start = time.time()
 left_lines = line_detection(left_erode)
@@ -118,8 +118,8 @@ right_lines = line_detection(right_erode)
 end = time.time()
 print("Line detection right2.jpg time: ", end - start, "s.")
 
-imsave("out/left_lines.jpg", left_lines)
-imsave("out/right_lines.jpg", right_lines)
+imsave("obrazy_i_dane/left_lines.jpg", left_lines)
+imsave("obrazy_i_dane/right_lines.jpg", right_lines)
 # diff = compare_images(left_edges, right_edges, method='diff')
 start = time.time()
 diff = np.abs(left_lines - right_lines)
@@ -136,4 +136,4 @@ for c in rectangles:
         mean_diff = np.mean(left_q) - np.mean(right_q)
         if abs(mean_diff) > 10:
             cv2.rectangle(right, (x, y), (x + w, y + h), (0, 255, 0), 2)
-imsave("out/diff.jpg", right)
+imsave("obrazy_i_dane/diff.jpg", right)
