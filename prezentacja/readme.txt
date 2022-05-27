@@ -1,1 +1,0 @@
-# tu ma byc prezentacja

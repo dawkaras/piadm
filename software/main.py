@@ -31,13 +31,13 @@ def line_detection(img):
     return lines_img
 
 
-left = imread('resources/left.jpg')
+left = imread('resources/right1.jpg')
 right = imread('resources/right2.jpg')
 height = left.shape[0]
 width = left.shape[1]
 
-# at least 5% of the image needs to be covered
-thresh = height * width * 0.05 * 0.05
+# at least 1% of the image needs to be covered
+thresh = height * width * 0.01 * 0.01
 
 # convert image to grayscale
 start = time.time()
@@ -50,8 +50,8 @@ right_gray = util.rgb_to_gray(right)
 end = time.time()
 print("RGB to grayscale right.jpg time: ", end - start, "s.")
 
-imsave("obrazy_i_dane/left_grayscale.jpg", left_gray)
-imsave("obrazy_i_dane/right_grayscale.jpg", right_gray)
+imsave("obrazy_i_dane/left_grayscale.jpg", left_gray.astype(np.uint8))
+imsave("obrazy_i_dane/right_grayscale.jpg", right_gray.astype(np.uint8))
 
 # binarization
 start = time.time()
@@ -64,8 +64,8 @@ right_bin = suauvol.binarization(right_gray, 0.2, 13, 128)
 end = time.time()
 print("Sauvol binarization time right2.jpg time: ", end - start, "s.")
 
-imsave("obrazy_i_dane/left_bin.jpg", left_bin)
-imsave("obrazy_i_dane/right_bin.jpg", right_bin)
+imsave("obrazy_i_dane/left_bin.jpg", left_bin.astype(np.uint8))
+imsave("obrazy_i_dane/right_bin.jpg", right_bin.astype(np.uint8))
 
 # edge detection
 start = time.time()
@@ -76,10 +76,10 @@ print("Edge detection left.jpg time: ", end - start, "s.")
 start = time.time()
 right_edges = edge_detection(right_bin)
 end = time.time()
-print("Edge detection right2.jpg time: ", end - start, "s.")
+print("Edge detection right.jpg time: ", end - start, "s.")
 
-imsave("obrazy_i_dane/left_edges.jpg", left_edges)
-imsave("obrazy_i_dane/right_edges.jpg", right_edges)
+imsave("obrazy_i_dane/left_edges.jpg", left_edges.astype(np.uint8))
+imsave("obrazy_i_dane/right_edges.jpg", right_edges.astype(np.uint8))
 
 start = time.time()
 left_dilate = dilate(left_edges)
@@ -89,10 +89,10 @@ print("Dilate for left.jpg time: ", end - start, "s.")
 start = time.time()
 right_dilate = dilate(right_edges)
 end = time.time()
-print("Dilate for right2.jpg time: ", end - start, "s.")
+print("Dilate for right.jpg time: ", end - start, "s.")
 
-imsave("obrazy_i_dane/left_dilate.jpg", left_dilate)
-imsave("obrazy_i_dane/right_dilate.jpg", right_dilate)
+imsave("obrazy_i_dane/left_dilate.jpg", left_dilate.astype(np.uint8))
+imsave("obrazy_i_dane/right_dilate.jpg", right_dilate.astype(np.uint8))
 
 start = time.time()
 left_erode = erode(left_dilate)
@@ -102,10 +102,10 @@ print("Erode left.jpg time: ", end - start, "s.")
 start = time.time()
 right_erode = erode(right_dilate)
 end = time.time()
-print("Erode right2.png time: ", end - start, "s.")
+print("Erode right.jpg time: ", end - start, "s.")
 
-imsave("obrazy_i_dane/left_erode.jpg", left_erode)
-imsave("obrazy_i_dane/right_erode.jpg", right_erode)
+imsave("obrazy_i_dane/left_erode.jpg", left_erode.astype(np.uint8))
+imsave("obrazy_i_dane/right_erode.jpg", right_erode.astype(np.uint8))
 
 start = time.time()
 left_lines = line_detection(left_erode)
@@ -116,17 +116,17 @@ print("Line detection left.jpg time: ", end - start, "s. ")
 start = time.time()
 right_lines = line_detection(right_erode)
 end = time.time()
-print("Line detection right2.jpg time: ", end - start, "s.")
+print("Line detection right.jpg time: ", end - start, "s.")
 
-imsave("obrazy_i_dane/left_lines.jpg", left_lines)
-imsave("obrazy_i_dane/right_lines.jpg", right_lines)
+imsave("obrazy_i_dane/left_lines.jpg", left_lines.astype(np.uint8))
+imsave("obrazy_i_dane/right_lines.jpg", right_lines.astype(np.uint8))
 # diff = compare_images(left_edges, right_edges, method='diff')
 start = time.time()
 diff = np.abs(left_lines - right_lines)
 end = time.time()
 print("Diff left and right lines time: ", end - start, "s.")
 
-rectangles = cv2.findContours(img_as_ubyte(diff), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+rectangles = cv2.findContours(img_as_ubyte(diff), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 rectangles = imutils.grab_contours(rectangles)
 for c in rectangles:
     (x, y, w, h) = cv2.boundingRect(c)
